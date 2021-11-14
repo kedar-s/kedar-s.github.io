@@ -1,0 +1,28 @@
+.axis{
+    font-size: 15px;
+}
+circle{
+    fill-opacity: .7;
+}
+.title{
+    font-size: 25pt;
+    font-family: sans-serif;
+    text-anchor: middle;
+}
+.label{
+    font-size: 10pt;
+    font-family: sans-serif;
+    text-anchor: middle;
+}
+.bars{
+    fill-opacity: .7;
+}
+
+.slider {
+  display: flex;
+  max-width: 340px;
+}
+
+.nodisplay {
+  visibility: hidden;
+}

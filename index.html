@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Exercise 10</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+
+    <script src="scatter_plot.js?2"></script>
+    <script src="bar_plot.js?2"></script>
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<!-- MARKUP -->
+<body>
+  <h2>Select penguin species</h2>
+<div class="slider">
+  <input type="range" name="figureSelector" value="2" min="1" max="3" id="figures">
+</div>
+
+<div id="fig"></div>
+
+<!-- JAVASCRIPT -->
+<script>
+    let palmer_penguin_species = "./palmer_penguin_species.tsv";
+    // loading data
+
+    let figure = d3.select("#fig")
+    let w = 1000;
+
+    d3.tsv(palmer_penguin_species).then(main)
+
+    function subTables(m, n) {
+        let axis = {}
+
+        let row = document.createElement("div");
+        row.setAttribute("class","row")
+        document.body.appendChild(row);
+
+        for (let i = 0; i < m; i++) {
+            for (let j = 0; j < n; j++) {
+                let base_div = document.createElement("div");
+                // base_div.setAttribute("id",`div_${i}_${j}`)
+                base_div.setAttribute("class","col-sm-4 nodisplay")
+                base_div.setAttribute("id", "figure" + (i+1))
+                row.appendChild(base_div);
+                let table = document.createElement("TABLE");
+                table.setAttribute("id", `myTable_${i}_${j}`);
+                table.setAttribute("border",".01px");
+                base_div.appendChild(table);
+                let tr1 = document.createElement("TR");
+                table.appendChild(tr1);
+                let tr2 = document.createElement("TR");
+                table.appendChild(tr2);
+                let td1 = document.createElement("TD");
+                tr1.appendChild(td1);
+                let td2 = document.createElement("TD");
+                let td3 = document.createElement("TD");
+                tr2.appendChild(td2);
+                tr2.appendChild(td3);
+
+                let div_top = document.createElement("div")
+                div_top.setAttribute("id",`div_top_${i}_${j}`)
+                td1.appendChild(div_top);
+                let div_main = document.createElement("div")
+                div_main.setAttribute("id",`div_main_${i}_${j}`)
+                td2.appendChild(div_main);
+                let div_right = document.createElement("div")
+                div_right.setAttribute("id",`div_right_${i}_${j}`)
+                td3.appendChild(div_right);
+
+                let top = d3.select(`#div_top_${i}_${j}`).append("svg")
+                    .attr("id", `svg__top_${i}_${j}`)
+                top.attr("width", parseInt(w / m))
+                    .attr("height", parseInt(w / (3*m)))
+                    .append("g").attr("id", `g_top_${i}_${j}`)
+                let main = d3.select(`#div_main_${i}_${j}`).append("svg")
+                    .attr("id", `svg__main_${i}_${j}`)
+                main.attr("width", parseInt(w / m))
+                    .attr("height", parseInt(w / m))
+                    .append("g").attr("id", `g_main_${i}_${j}`)
+                let right = d3.select(`#div_right_${i}_${j}`).append("svg")
+                    .attr("id", `svg__right_${i}_${j}`)
+                right.attr("width", parseInt(w / (3*m)))
+                    .attr("height", parseInt(w / m))
+                    .append("g").attr("id", `g_right_${i}_${j}`)
+
+                axis[`svg_${i}_${j}`] = {'top':top.attr("id"), 'main':main.attr("id"), 'right':right.attr("id")};
+            }
+        }
+        return axis
+    }
+    function main(data) {
+        let species = d3.map(data, function (d) {
+            return d.species
+        })
+        let species_types = new Set(species)
+
+        //keep state data only (remove the rows with state<0)
+        // keep the birth and population columns only
+        let dict = {}
+        d3.map(data, function (d) {
+            if (dict[d["species"]] === undefined) {
+                dict[d["species"]] = {"culmen_length_mm": [], "culmen_depth_mm": [], "island":[]}
+            }
+            dict[d["species"]]["culmen_length_mm"].push(+d["culmen_length_mm"])
+            dict[d["species"]]["culmen_depth_mm"].push(+d["culmen_depth_mm"])
+            dict[d["species"]]["island"].push(d["island"])
+
+        })
+        //////////////////////// Add subplots
+        let table_axis = subTables(3,1);
+        console.log(table_axis[Object.keys(table_axis)[1]])
+        d3.map(species_types, function (d, i) {
+            let x = dict[d]['culmen_length_mm'];
+            let y = dict[d]['culmen_depth_mm'];
+            console.log(dict[d]['island'])
+            let tableAxi = table_axis[Object.keys(table_axis)[i]];
+            scatter_plot(x,
+                y,dict[d]['island'],
+                5,
+                tableAxi['main']
+                ,title=d,
+                xLabel="culmen_depth_mm",
+                yLabel="culmen_length_mm");
+            //#############
+            bar_plot(y, 15,
+                tableAxi['top'])
+            h_bar_plot(x,15,
+                tableAxi['right'])
+        })
+
+    }
+
+
+
+    let range = document.getElementById("figures");
+    range.addEventListener('input', onInput)
+
+    function onInput() {
+      let tem = 1;
+      tem = range.value;
+      let element = document.getElementById("figure" + tem);
+      element.setAttribute("style", "visibility:visible");
+    }
+
+
+
+</script>
+
+</body>
+</html>
